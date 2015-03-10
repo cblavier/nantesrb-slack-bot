@@ -19,6 +19,7 @@ GEM
       rack
     rack-test (0.6.3)
       rack (>= 1.0)
+    redis (3.2.1)
     rspec (3.1.0)
       rspec-core (~> 3.1.0)
       rspec-expectations (~> 3.1.0)
@@ -57,6 +58,7 @@ DEPENDENCIES
   foreman
   mocha
   puma
+  redis
   rspec
   sinatra
   sinatra-reloader

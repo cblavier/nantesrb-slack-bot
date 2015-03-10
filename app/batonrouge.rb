@@ -1,6 +1,10 @@
 require 'sinatra'
 require "sinatra/reloader" if development?
 require 'slackbotsy'
+require 'redis'
+
+set :redis_url,                 ENV.fetch('REDIS_URL')               { 'redis://localhost'}
+set :redis_scores_key,          'scores'
 
 set :slack_channel,             ENV.fetch('SLACK_CHANNEL')           { 'test'}
 set :slack_bot_name,            ENV.fetch('BOT_NAME')                { 'Baton Rouge' }
@@ -33,8 +37,15 @@ def check_authorization(token)
 end
 
 def give_baton_rouge(current_user, user_to_award)
-  output = {say: "Oh! #{current_user} a donné 1 baton à #{user_to_award}. #{user_to_award} a maintenant 1 baton rouge"}
-  yield(output) if block_given?
+  increment_user_score(user_to_award) do |new_score|
+    output = {say: "Oh! #{current_user} a donné 1 baton à #{user_to_award}. #{user_to_award} a maintenant #{pluralize(new_score, "baton rouge")}"}
+    yield(output) if block_given?
+  end
+end
+
+def increment_user_score(user)
+  new_score = (redis.zincrby settings.redis_scores_key, 1, user).to_i
+  yield(new_score) if block_given?
 end
 
 def help_text
@@ -46,6 +57,16 @@ def help_text
 eos
 end
 
+def pluralize(n, singular, plural=nil)
+  if (-1..1).include?(n)
+    "#{n} #{singular}"
+  elsif plural
+    "#{n} #{plural}"
+  else
+    "#{n} #{singular.split(' ').join('s ')}s"
+  end
+end
+
 def bot
   @bot ||= Slackbotsy::Bot.new({
     'channel'          => settings.slack_channel,
@@ -53,4 +74,8 @@ def bot
     'incoming_webhook' => settings.slack_incoming_webhook,
     'outgoing_token'   => settings.slack_outgoing_token
   })
+end
+
+def redis
+  @redis ||= Redis.new(url: settings.redis_url)
 end

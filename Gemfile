@@ -6,6 +6,9 @@ gem 'sinatra'
 gem 'puma'
 gem 'foreman'
 
+# storage
+gem 'redis'
+
 # remote API
 gem 'slackbotsy'
 

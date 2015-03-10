@@ -2,10 +2,14 @@ require File.expand_path "../spec_helper.rb", __FILE__
 
 describe "Baton Rouge" do
 
-  before do
-    app.set :slack_outgoing_token, nil
-  end
+  let(:redis_scores_key)    { "test_scores" }
+  let(:redis)               { app.send(:redis) }
 
+  before do
+    app.set :redis_scores_key,     redis_scores_key
+    app.set :slack_outgoing_token, nil
+    redis.del(redis_scores_key)
+  end
 
   describe "help" do
 
@@ -52,16 +56,25 @@ describe "Baton Rouge" do
     let(:current_user) { "dhh" }
     let(:user)         { "yehuda" }
 
-    it "gives 1 batonrouge" do
+    it "gives 1 baton rouge" do
       expects_say("Oh! #{current_user} a donné 1 baton à #{user}. #{user} a maintenant 1 baton rouge")
       post "/", text: "#{user}", user_name: current_user
       expect(last_response.body).to be_empty
     end
 
+    it "gives 2 batons rouges" do
+      expects_say("Oh! #{current_user} a donné 1 baton à #{user}. #{user} a maintenant 1 baton rouge")
+      expects_say("Oh! #{current_user} a donné 1 baton à #{user}. #{user} a maintenant 2 batons rouges")
+      2.times do
+        post "/", text: "#{user}", user_name: current_user
+        expect(last_response.body).to be_empty
+      end
+    end
+
   end
 
   def expects_say(text)
-    Slackbotsy::Bot.any_instance.expects(:say).with(text)
+    Slackbotsy::Bot.any_instance.expects(:say).with(text).at_least_once
   end
 
 end
