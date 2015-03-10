@@ -101,7 +101,7 @@ EOS
   end
 
   def expects_say(text)
-    Slackbotsy::Bot.any_instance.expects(:say).with(text).at_least_once
+    SlackApi.any_instance.expects(:say).with(text).at_least_once
   end
 
 end

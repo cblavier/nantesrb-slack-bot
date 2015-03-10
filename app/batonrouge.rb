@@ -3,6 +3,8 @@ require "sinatra/reloader" if development?
 require 'slackbotsy'
 require 'redis'
 
+require_relative '../lib/slack_api.rb'
+
 set :redis_url,                 ENV.fetch('REDIS_URL')               { 'redis://localhost'}
 set :redis_scores_key,          'scores'
 
@@ -18,11 +20,11 @@ post "/" do
   when /^\s*help\s*$/
     help_text
     when /^\s*ranking\s*$/
-    bot.say(ranking)
+    slack_api.say(ranking)
   when /^\s*@?(\w+)\s*$/
     user_to_award = $1
     give_baton_rouge(current_user, user_to_award) do |output|
-      bot.say output[:say] if output[:say]
+      slack_api.say output[:say] if output[:say]
       output[:return]
     end
   else
@@ -79,13 +81,8 @@ def pluralize(n, singular, plural=nil)
   end
 end
 
-def bot
-  @bot ||= Slackbotsy::Bot.new({
-    'channel'          => settings.slack_channel,
-    'name'             => settings.slack_bot_name,
-    'incoming_webhook' => settings.slack_incoming_webhook,
-    'outgoing_token'   => settings.slack_outgoing_token
-  })
+def slack_api
+  @slack_api ||= SlackApi.new(settings)
 end
 
 def redis
