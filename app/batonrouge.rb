@@ -17,6 +17,8 @@ post "/" do
   case params['text']
   when /^\s*help\s*$/
     help_text
+    when /^\s*ranking\s*$/
+    bot.say(ranking)
   when /^\s*@?(\w+)\s*$/
     user_to_award = $1
     give_baton_rouge(current_user, user_to_award) do |output|
@@ -55,6 +57,16 @@ def help_text
 /batonrouge ranking - Affiche le classement
 /batonrouge help - Affiche cette aide
 eos
+end
+
+def ranking
+  scores = redis.zscan(settings.redis_scores_key, 0)[1].reverse
+  ranking_text = "Ok, voici le classement complet :\n"
+  scores.each.with_index do |score, i|
+    ranking_text.concat "#{i + 1} - #{score[0]}: #{pluralize(score[1].to_i, 'baton rouge')}"
+    ranking_text.concat "\n"
+  end
+  ranking_text
 end
 
 def pluralize(n, singular, plural=nil)

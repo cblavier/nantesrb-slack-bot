@@ -73,6 +73,33 @@ describe "Baton Rouge" do
 
   end
 
+  describe "ranking" do
+
+    let(:user)             { "yehuda" }
+    let(:other_user)       { "dhh" }
+    let(:yet_another_user) { "yukihiro" }
+
+    before do
+      redis.zadd redis_scores_key, 2, other_user
+      redis.zadd redis_scores_key, 0, yet_another_user
+      redis.zadd redis_scores_key, 5, user
+    end
+
+    it "says ranking" do
+      ranking_text = <<-EOS
+Ok, voici le classement complet :
+1 - #{user}: 5 batons rouges
+2 - #{other_user}: 2 batons rouges
+3 - #{yet_another_user}: 0 baton rouge
+EOS
+      expects_say ranking_text
+      post "/", text: "ranking"
+      expect(last_response).to be_ok
+      expect(last_response.body).to be_empty
+    end
+
+  end
+
   def expects_say(text)
     Slackbotsy::Bot.any_instance.expects(:say).with(text).at_least_once
   end
