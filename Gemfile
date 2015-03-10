@@ -6,6 +6,9 @@ gem 'sinatra'
 gem 'puma'
 gem 'foreman'
 
+# remote API
+gem 'slackbotsy'
+
 group :development do
   gem 'sinatra-reloader'
 end
