@@ -8,11 +8,20 @@ set :slack_incoming_webhook,    ENV.fetch('SLACK_INCOMING_WEBHOOK')  { :missing_
 set :slack_outgoing_token,      ENV.fetch('SLACK_OUTGOING_TOKEN')    { :missing_slack_outgoing_token }
 
 post "/" do
+  check_authorization(params['token'])
   case params['text']
   when /^\s*help\s*$/
     help_text
   else
     "Commande invalide"
+  end
+end
+
+def check_authorization(token)
+  if token != settings.slack_outgoing_token
+    error 403 do
+      'Invalid token'
+    end
   end
 end
 
