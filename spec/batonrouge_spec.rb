@@ -20,7 +20,7 @@ describe "Baton Rouge" do
   describe "invalid command" do
 
     it "shows invalid command" do
-      post "/", text: "anything"
+      post "/", text: "invalid command"
       expect(last_response).to be_ok
       expect(last_response.body).to eq("Commande invalide")
     end
@@ -47,5 +47,21 @@ describe "Baton Rouge" do
 
   end
 
+  describe "give batonrouge" do
+
+    let(:current_user) { "dhh" }
+    let(:user)         { "yehuda" }
+
+    it "gives 1 batonrouge" do
+      expects_say("Oh! #{current_user} a donné 1 baton à #{user}. #{user} a maintenant 1 baton rouge")
+      post "/", text: "#{user}", user_name: current_user
+      expect(last_response.body).to be_empty
+    end
+
+  end
+
+  def expects_say(text)
+    Slackbotsy::Bot.any_instance.expects(:say).with(text)
+  end
 
 end

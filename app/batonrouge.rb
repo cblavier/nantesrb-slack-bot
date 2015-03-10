@@ -9,9 +9,16 @@ set :slack_outgoing_token,      ENV.fetch('SLACK_OUTGOING_TOKEN')    { :missing_
 
 post "/" do
   check_authorization(params['token'])
+  current_user = params['user_name']
   case params['text']
   when /^\s*help\s*$/
     help_text
+  when /^\s*@?(\w+)\s*$/
+    user_to_award = $1
+    give_baton_rouge(current_user, user_to_award) do |output|
+      bot.say output[:say] if output[:say]
+      output[:return]
+    end
   else
     "Commande invalide"
   end
@@ -23,6 +30,11 @@ def check_authorization(token)
       'Invalid token'
     end
   end
+end
+
+def give_baton_rouge(current_user, user_to_award)
+  output = {say: "Oh! #{current_user} a donné 1 baton à #{user_to_award}. #{user_to_award} a maintenant 1 baton rouge"}
+  yield(output) if block_given?
 end
 
 def help_text
