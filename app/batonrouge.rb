@@ -8,7 +8,21 @@ set :slack_incoming_webhook,    ENV.fetch('SLACK_INCOMING_WEBHOOK')  { :missing_
 set :slack_outgoing_token,      ENV.fetch('SLACK_OUTGOING_TOKEN')    { :missing_slack_outgoing_token }
 
 post "/" do
-  "hey!"
+  case params['text']
+  when /^\s*help\s*$/
+    help_text
+  else
+    "Commande invalide"
+  end
+end
+
+def help_text
+  <<-eos
+/batonrouge [username] - Donne un batonrouge à un utilisateur
+/batonrouge [username] -1 - Retire un batonrouge à un utilisateur
+/batonrouge ranking - Affiche le classement
+/batonrouge help - Affiche cette aide
+eos
 end
 
 def bot
